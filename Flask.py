@@ -84,7 +84,7 @@ Handles requests for POST
 """
 @app.route('s/vote/<int:person_id>/<int:movie_id>', methods = ['POST'])
 def vote():
-    if request.json or not 'name' in request.json:
+    if request.json or not 'person_id' in request.json: #check this if statment
         abort(400)
        
     vote = Vote(request.json.person_id, request.json.movie_id)
