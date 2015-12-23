@@ -87,7 +87,7 @@ def vote():
     if request.json or not 'name' in request.json:
         abort(400)
        
-    vote = Vote(request.json.user_id, request.json.movie_id)
+    vote = Vote(request.json.person_id, request.json.movie_id)
 
     db.session.add(vote)
     db.session.commit()
