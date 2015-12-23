@@ -2,15 +2,18 @@ from flask import Flask, jsonify, abort, request
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.restless import APIManager
 
+
 """
-instantiates the app, loads config and creates database"""
+instantiates the app, loads config and creates database
+"""
 app = Flask(__name__) 
 app.config.from_pyfile('config.py') 
 db = SQLAlchemy(app) 
 
 
 """
-Classes for the database"""
+Classes for the database
+"""
 class People(db.Model):
        
     __tablename__ = 'people' 
@@ -43,7 +46,7 @@ class Movie(db.Model):
         return '<Title %r>' % self.title
  
     
-class Votes(db.Model):
+class Vote(db.Model):
     
     __tablename__ = 'votes'
     
@@ -58,7 +61,8 @@ db.createAll()
 
 
 """
-Handles requests for GET"""
+Handles requests for GET
+"""
 @app.route('/movies', methods = ['GET'])
 def get_movies():
     return jsonify({'movies': Movie.query.all()})
@@ -69,10 +73,27 @@ def get_people():
 
 @app.route('/votes', methods = ['GET'])
 def get_votes():
-    return jsonify({'votes': Votes.query.all()})
+    return jsonify({'votes': Vote.query.all()})
+
 
 """
-Handles requests for POST"""
+Handles requests for POST
+"""
+@app.route('/vote/<int:person_id>/<int:movie_id>', methods = ['POST'])
+def vote():
+    if request.json or not 'name' in request.json:
+        abort(400)
+    
+    
+    
+"""
+Handles requests for DELETE
+"""
+# DELETE /people/<int:person_id>/votes
+#     - delete all votes for a given person ID.
+# 
+# DELETE /votes
+#     - delete all votes.
 
     
     
