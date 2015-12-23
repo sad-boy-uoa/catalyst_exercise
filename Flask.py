@@ -2,6 +2,7 @@ from flask import Flask, jsonify, abort, request
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.restless import APIManager
 
+#TODO The constraint on people voting on only one movie once 
 
 """
 instantiates the app, loads config and creates database
@@ -21,8 +22,7 @@ class People(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), index=True)
     
-    def __init__(self, id, name):
-        self.id = id
+    def __init__(self, name):
         self.name = name
         
     def __repr__(self):        
@@ -37,8 +37,7 @@ class Movie(db.Model):
     title = db.Column(db.String(100))
     length = db.Column(db.Integer)
     
-    def __init__(self, id, title, length):
-        self.id = id
+    def __init__(self, title, length):
         self.title = title
         self.length = length
     
@@ -53,8 +52,12 @@ class Vote(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     movie_id = db.Column(db.Integer, db.ForeignKey('movie.id'))
-    #TODO The constraint on people voting on only one movie once 
     #TODO figure out how to do init for a vote
+    
+    def __init__(self, user_id, movie_id): #something like this maybe
+        self.user_id = user_id
+        self.movie_id = movie_id
+    #where the fuck do i do the constraint for voting uniqueness
     
    
 db.createAll()
@@ -79,11 +82,16 @@ def get_votes():
 """
 Handles requests for POST
 """
-@app.route('/vote/<int:person_id>/<int:movie_id>', methods = ['POST'])
+@app.route('s/vote/<int:person_id>/<int:movie_id>', methods = ['POST'])
 def vote():
     if request.json or not 'name' in request.json:
         abort(400)
-    
+       
+    vote = Vote(request.json.user_id, request.json.movie_id)
+
+    db.session.add(vote)
+    db.session.commit()
+    return jsonify({'vote': vote}), 201
     
     
 """
@@ -93,7 +101,11 @@ Handles requests for DELETE
 #     - delete all votes for a given person ID.
 # 
 # DELETE /votes
-#     - delete all votes.
+#     - delete all votes.  
 
-    
-    
+
+
+
+
+
+
