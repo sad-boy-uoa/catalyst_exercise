@@ -1,15 +1,19 @@
 from flask import Flask, jsonify, abort, request
 from flask.ext.sqlalchemy import SQLAlchemy
+from flask.ext.restless import APIManager
+
+"""
+instantiates the app, loads config and creates database"""
+app = Flask(__name__) 
+app.config.from_pyfile('config.py') 
+db = SQLAlchemy(app) 
 
 
-app = Flask(__name__) #instantiates our app
-app.config.from_pyfile('config.py') #config loaded into app
-db = SQLAlchemy(app) #create database by instantiating an SQLAlchemy instance 
-
-
-class User(db.Model):
+"""
+Classes for the database"""
+class People(db.Model):
        
-    __tablename__ = 'users' #not sure if this is needed
+    __tablename__ = 'people' 
     
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), index=True)
@@ -19,7 +23,7 @@ class User(db.Model):
         self.name = name
         
     def __repr__(self):        
-        return '<User %r>' % (self.name)
+        return '<People %r>' % (self.name)
     
 
 class Movie(db.Model):
@@ -37,23 +41,38 @@ class Movie(db.Model):
     
     def __repr__(self):
         return '<Title %r>' % self.title
+ 
     
-class Vote(db.Model):
+class Votes(db.Model):
     
     __tablename__ = 'votes'
     
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     movie_id = db.Column(db.Integer, db.ForeignKey('movie.id'))
-    #TODO The constraint on people voting on only one movie once
-    
+    #TODO The constraint on people voting on only one movie once 
     #TODO figure out how to do init for a vote
     
+   
+db.createAll()
+
+
+"""
+Handles requests for GET"""
+@app.route('/movies', methods = ['GET'])
+def get_movies():
+    return jsonify({'movies': Movie.query.all()})
     
-    
-    
-    
-    
-    
+@app.route('/people', methods = ['GET'])
+def get_people():
+    return jsonify({'people': People.query.all()})
+
+@app.route('/votes', methods = ['GET'])
+def get_votes():
+    return jsonify({'votes': Votes.query.all()})
+
+"""
+Handles requests for POST"""
+
     
     
