@@ -1,39 +1,42 @@
 from flask import Flask, jsonify, abort, request
+from sqlalchemy.orm import relationship
 from flask.ext.sqlalchemy import SQLAlchemy
-from flask.ext.restless import APIManager
 
-#TODO The constraint on people voting on only one movie once 
+
+#TODO The constraint on Person voting on only one movie once 
+#error message if someone has already voted
 
 """
 instantiates the app, loads config and creates database
 """
 app = Flask(__name__) 
-app.config.from_pyfile('config.py') 
+app.config.from_pyfile('Config.py') 
 db = SQLAlchemy(app) 
 
 
 """
 Classes for the database
 """
-class People(db.Model):
+class Person(db.Model):
        
-    __tablename__ = 'people' 
+    __tablename__ = 'Person' 
     
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), index=True)
+    votes = relationship("Vote", backref="person")
     
     def __init__(self, name):
         self.name = name
         
     def __repr__(self):        
-        return '<People %r>' % (self.name)
+        return '<Person %r>' % (self.name)
     
 
 class Movie(db.Model):
     
     __tablename__ = 'movies'
     
-    id = db.Columns(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100))
     length = db.Column(db.Integer)
     
@@ -49,8 +52,7 @@ class Vote(db.Model):
     
     __tablename__ = 'votes'
     
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     movie_id = db.Column(db.Integer, db.ForeignKey('movie.id'))
     
     def __init__(self, user_id, movie_id): #something like this maybe
@@ -59,8 +61,6 @@ class Vote(db.Model):
     #where the fuck do i do the constraint for voting uniqueness
     
    
-db.createAll()
-
 
 """
 Handles requests for GET
@@ -69,9 +69,9 @@ Handles requests for GET
 def get_movies():
     return jsonify({'movies': Movie.query.all()})
     
-@app.route('/people', methods = ['GET'])
-def get_people():
-    return jsonify({'people': People.query.all()})
+@app.route('/Person', methods = ['GET'])
+def get_Person():
+    return jsonify({'Person': Person.query.all()})
 
 @app.route('/votes', methods = ['GET'])
 def get_votes():
@@ -96,9 +96,9 @@ def vote():
 """
 Handles requests for DELETE
 """
-@app.route('/people/<int:person_id>/votes', methods = ['DELETE'])
+@app.route('/Person/<int:person_id>/votes', methods = ['DELETE'])
 def delete_person_votes(): #check this function
-    votes = People.query.filter(id=vote.id).all()
+    votes = Person.query.filter(id=vote.id).all()
     votes.delete()
     db.session.commit()
 
