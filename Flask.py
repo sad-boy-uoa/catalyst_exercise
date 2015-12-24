@@ -23,7 +23,7 @@ class Person(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), index=True)
-    votes = relationship("Vote", backref="person")
+    votes = db.relationship("Vote", backref="person")
     
     def __init__(self, name):
         self.name = name
