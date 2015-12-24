@@ -83,14 +83,11 @@ Handles requests for POST
 """
 @app.route('/vote/<int:person_id>/<int:movie_id>', methods = ['POST'])
 def vote():
-    if request.json or not 'person_id' in request.json: #check this if statment
-        abort(400)
-       
     vote = Vote(request.json.person_id, request.json.movie_id)
 
     db.session.add(vote)
     db.session.commit()
-    return jsonify({'vote': vote}), 201
+    return jsonify({'vote': vote})
     
     
 """
