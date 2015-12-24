@@ -19,7 +19,7 @@ Classes for the database
 """
 class Person(db.Model):
        
-    __tablename__ = 'Person' 
+    __tablename__ = 'person' 
     
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), index=True)
@@ -52,7 +52,7 @@ class Vote(db.Model):
     
     __tablename__ = 'votes'
     
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('person.id'), primary_key=True)
     movie_id = db.Column(db.Integer, db.ForeignKey('movie.id'))
     
     def __init__(self, user_id, movie_id): #something like this maybe
