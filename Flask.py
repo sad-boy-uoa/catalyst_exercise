@@ -52,7 +52,6 @@ class Vote(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     movie_id = db.Column(db.Integer, db.ForeignKey('movie.id'))
-    #TODO figure out how to do init for a vote
     
     def __init__(self, user_id, movie_id): #something like this maybe
         self.user_id = user_id
@@ -82,7 +81,7 @@ def get_votes():
 """
 Handles requests for POST
 """
-@app.route('s/vote/<int:person_id>/<int:movie_id>', methods = ['POST'])
+@app.route('/vote/<int:person_id>/<int:movie_id>', methods = ['POST'])
 def vote():
     if request.json or not 'person_id' in request.json: #check this if statment
         abort(400)
@@ -97,15 +96,20 @@ def vote():
 """
 Handles requests for DELETE
 """
-# DELETE /people/<int:person_id>/votes
-#     - delete all votes for a given person ID.
-# 
-# DELETE /votes
-#     - delete all votes.  
+@app.route('/people/<int:person_id>/votes', methods = ['DELETE'])
+def delete_person_votes(): #check this function
+    votes = People.query.filter(id=vote.id).all()
+    votes.delete()
+    db.session.commit()
+
+  
+@app.route('/votes', methods = ['DELETE'])
+def delete_all_votes(): #check this function
+    Vote.query.all.delete()
+    db.session.commit()
 
 
 
 
-
-
-
+if __name__ == '__main__':
+    app.run()
