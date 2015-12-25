@@ -15,7 +15,7 @@ db = SQLAlchemy(app)
 
 
 """
-Classes for the database
+Database models for catalyst_exercise
 """
 class Person(db.Model):
        
@@ -23,7 +23,7 @@ class Person(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), index=True)
-    votes = db.relationship("Vote", backref="person")
+    votes = db.relationship('Vote', backref='person')
     
     def __init__(self, name):
         self.name = name
@@ -34,11 +34,13 @@ class Person(db.Model):
 
 class Movie(db.Model):
     
-    __tablename__ = 'movies'
+    __tablename__ = 'movie'
     
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100))
     length = db.Column(db.Integer)
+    votes = db.relationship('Vote', backref='movie')
+
     
     def __init__(self, title, length):
         self.title = title
@@ -60,10 +62,11 @@ class Vote(db.Model):
         self.movie_id = movie_id
     #where the fuck do i do the constraint for voting uniqueness
     
-   
+db.create_all()
+
 
 """
-Handles requests for GET
+URL routing for catalyst_exercise
 """
 @app.route('/movies', methods = ['GET'])
 def get_movies():
@@ -78,9 +81,6 @@ def get_votes():
     return jsonify({'votes': Vote.query.all()})
 
 
-"""
-Handles requests for POST
-"""
 @app.route('/vote/<int:person_id>/<int:movie_id>', methods = ['POST'])
 def vote():
     vote = Vote(request.json.person_id, request.json.movie_id)
@@ -90,15 +90,11 @@ def vote():
     return jsonify({'vote': vote})
     
     
-"""
-Handles requests for DELETE
-"""
 @app.route('/Person/<int:person_id>/votes', methods = ['DELETE'])
 def delete_person_votes(): #check this function
     votes = Person.query.filter(id=vote.id).all()
     votes.delete()
     db.session.commit()
-
   
 @app.route('/votes', methods = ['DELETE'])
 def delete_all_votes(): #check this function
@@ -106,7 +102,8 @@ def delete_all_votes(): #check this function
     db.session.commit()
 
 
-
-
+"""
+Run server
+"""
 if __name__ == '__main__':
     app.run()
