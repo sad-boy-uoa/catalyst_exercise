@@ -1,5 +1,4 @@
-from flask import Flask, jsonify, abort, request
-from sqlalchemy.orm import relationship
+from flask import Flask, jsonify, request
 from flask.ext.sqlalchemy import SQLAlchemy
 
 
