@@ -1,20 +1,17 @@
-from flask import Flask, jsonify, request
-from flask.ext.sqlalchemy import SQLAlchemy
-
-
 #TODO The constraint on Person voting on only one movie once 
 #error message if someone has already voted
 
-"""
-instantiates the app, loads config and creates database
+from flask import Flask, jsonify, request
+from flask.ext.sqlalchemy import SQLAlchemy
+
+"""Instantiates the app, loads config and creates database
 """
 app = Flask(__name__) 
 app.config.from_pyfile('Config.py') 
 db = SQLAlchemy(app) 
 
 
-"""
-Database models for catalyst_exercise
+"""Database models for catalyst_exercise
 """
 class Person(db.Model):
        
@@ -30,6 +27,13 @@ class Person(db.Model):
     def __repr__(self):        
         return '<Person %r>' % (self.name)
     
+    def serialize(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'votes': self.votes
+        }
+    
 
 class Movie(db.Model):
     
@@ -38,7 +42,7 @@ class Movie(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100))
     length = db.Column(db.Integer)
-    votes = db.relationship('Vote', backref='movie')
+    vote = db.relationship('Vote', backref='movie')
 
     
     def __init__(self, title, length):
@@ -47,6 +51,14 @@ class Movie(db.Model):
     
     def __repr__(self):
         return '<Title %r>' % self.title
+    
+    def serialize(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'length': self.length,
+            'vote': self.vote
+        }
  
     
 class Vote(db.Model):
@@ -61,11 +73,15 @@ class Vote(db.Model):
         self.movie_id = movie_id
     #where the fuck do i do the constraint for voting uniqueness
     
+    def serialize(self):
+        return {
+            'user_id': self.user_id,
+            'movie_id': self.movie_id,
+        }
+    
 db.create_all()
 
-
-"""
-URL routing for catalyst_exercise
+"""URL routing for catalyst_exercise
 """
 @app.route('/movies', methods = ['GET'])
 def get_movies():
@@ -101,8 +117,7 @@ def delete_all_votes(): #check this function
     db.session.commit()
 
 
-"""
-Run server
+"""Run server
 """
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
