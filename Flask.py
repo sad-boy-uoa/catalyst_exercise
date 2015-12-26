@@ -19,7 +19,7 @@ class Person(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), index=True)
-    votes = db.relationship('Vote', backref='person')
+    vote = db.relationship('Vote', backref='person')
     
     def __init__(self, name):
         self.name = name
@@ -31,7 +31,7 @@ class Person(db.Model):
         return {
             'id': self.id,
             'name': self.name,
-            'votes': self.votes
+            'vote': self.vote.movie.name
         }
     
 
@@ -57,7 +57,7 @@ class Movie(db.Model):
             'id': self.id,
             'title': self.title,
             'length': self.length,
-            'vote': self.vote
+            'votes': [vote.person.name for vote in self.vote]
         }
  
     
@@ -65,19 +65,13 @@ class Vote(db.Model):
     
     __tablename__ = 'votes'
     
-    user_id = db.Column(db.Integer, db.ForeignKey('person.id'), primary_key=True)
-    movie_id = db.Column(db.Integer, db.ForeignKey('movie.id'))
+    person = db.Column(db.Integer, db.ForeignKey('person.id'), primary_key=True)
+    movie = db.Column(db.Integer, db.ForeignKey('movie.id'))
     
-    def __init__(self, user_id, movie_id): #something like this maybe
-        self.user_id = user_id
-        self.movie_id = movie_id
-    #where the fuck do i do the constraint for voting uniqueness
+    def __init__(self, person, movie):
+        self.person = person
+        self.movie = movie
     
-    def serialize(self):
-        return {
-            'user_id': self.user_id,
-            'movie_id': self.movie_id,
-        }
     
 db.create_all()
 
@@ -96,9 +90,9 @@ def get_votes():
     return jsonify({'votes': Vote.query.all()})
 
 
-@app.route('/vote/<int:person_id>/<int:movie_id>', methods = ['POST'])
+@app.route('/vote/<int:person_id>/<int:movie>', methods = ['POST'])
 def vote():
-    vote = Vote(request.json.person_id, request.json.movie_id)
+    vote = Vote(request.json.person_id, request.json.movie)
 
     db.session.add(vote)
     db.session.commit()
