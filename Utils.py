@@ -24,3 +24,5 @@ def create_test_data():
     for movie in movies:
         db.session.add(movie)
     db.session.commit()
+    
+create_test_data()

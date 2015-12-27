@@ -30,8 +30,7 @@ class Person(db.Model):
     def serialize(self):
         return {
             'id': self.id,
-            'name': self.name,
-            'vote': self.vote.movie.name
+            'name': self.name
         }
     
 
@@ -42,8 +41,7 @@ class Movie(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100))
     length = db.Column(db.Integer)
-    vote = db.relationship('Vote', backref='movie')
-
+    votes = db.relationship('Vote', backref='movie')
     
     def __init__(self, title, length):
         self.title = title
@@ -56,59 +54,71 @@ class Movie(db.Model):
         return {
             'id': self.id,
             'title': self.title,
-            'length': self.length,
-            'votes': [vote.person.name for vote in self.vote]
+            'length': self.length
         }
  
     
 class Vote(db.Model):
     
-    __tablename__ = 'votes'
+    __tablename__ = 'vote'
     
-    person = db.Column(db.Integer, db.ForeignKey('person.id'), primary_key=True)
-    movie = db.Column(db.Integer, db.ForeignKey('movie.id'))
+    person_id = db.Column(db.Integer, db.ForeignKey('person.id'), primary_key=True)
+    movie_id = db.Column(db.Integer, db.ForeignKey('movie.id'))
     
     def __init__(self, person, movie):
-        self.person = person
-        self.movie = movie
-    
-    
-db.create_all()
+        self.person_id = person
+        self.movie_id = movie
+        
+    def serialize(self):
+        return {
+            'person': self.person.name,
+            'movie': self.movie.title
+        }
+ 
+db.create_all()       
 
 """URL routing for catalyst_exercise
 """
 @app.route('/movies', methods = ['GET'])
 def get_movies():
-    return jsonify({'movies': Movie.query.all()})
-    
-@app.route('/Person', methods = ['GET'])
+    movies = Movie.query.all()
+    return jsonify({'movies': [movie.serialize() for movie in movies]}) 
+   
+@app.route('/people', methods = ['GET'])
 def get_Person():
-    return jsonify({'Person': Person.query.all()})
+    people = Person.query.all()
+    return jsonify({'people': [person.serialize() for person in people]}) 
 
 @app.route('/votes', methods = ['GET'])
 def get_votes():
-    return jsonify({'votes': Vote.query.all()})
+    votes = Vote.query.all()
+    return jsonify({'votes': [vote.serialize() for vote in votes]})
 
 
-@app.route('/vote/<int:person_id>/<int:movie>', methods = ['POST'])
-def vote():
-    vote = Vote(request.json.person_id, request.json.movie)
-
+@app.route('/vote/<int:person_id>/<int:movie_id>', methods = ['POST'])
+def vote(person_id, movie_id):
+    vote = Vote(person_id, movie_id)
     db.session.add(vote)
     db.session.commit()
-    return jsonify({'vote': vote})
+    #return (400, jsonify({'error': 'You can only vote once'}))
+    return jsonify({'vote': vote.serialize()})
     
     
-@app.route('/Person/<int:person_id>/votes', methods = ['DELETE'])
-def delete_person_votes(): #check this function
-    votes = Person.query.filter(id=vote.id).all()
-    votes.delete()
+@app.route('/people/<int:person_id>/votes', methods = ['DELETE'])
+def delete_person_votes(person_id): #check this function
+    vote = Vote.query.get(person_id)
+    db.session.delete(vote)
     db.session.commit()
+    return jsonify({'votes': "Votes for personID %r has been deleted" % person_id})
   
 @app.route('/votes', methods = ['DELETE'])
 def delete_all_votes(): #check this function
-    Vote.query.all.delete()
+    votes = Vote.query.all()
+    for vote in votes:
+        db.session.delete(vote)
     db.session.commit()
+    return jsonify({'votes': "All votes have been deleted"})
+
 
 
 """Run server
